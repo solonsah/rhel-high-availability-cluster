@@ -1,0 +1,60 @@
+---
+- name: RHEL HA cluster | Run read-only audit
+  ansible.builtin.import_tasks: audit.yml
+  tags:
+    - audit
+    - always
+
+- name: RHEL HA cluster | Run change preflight
+  ansible.builtin.import_tasks: preflight.yml
+  when:
+    - rhel_ha_manage_packages
+      or rhel_ha_manage_pcsd
+      or rhel_ha_manage_cluster
+      or rhel_ha_manage_fencing
+      or rhel_ha_manage_resources
+      or rhel_ha_manage_constraints
+  tags:
+    - preflight
+
+- name: RHEL HA cluster | Manage packages
+  ansible.builtin.import_tasks: packages.yml
+  when: rhel_ha_manage_packages
+  tags:
+    - packages
+
+- name: RHEL HA cluster | Manage pcsd
+  ansible.builtin.import_tasks: pcsd.yml
+  when: rhel_ha_manage_pcsd
+  tags:
+    - pcsd
+
+- name: RHEL HA cluster | Manage cluster configuration
+  ansible.builtin.import_tasks: cluster.yml
+  when: rhel_ha_manage_cluster
+  tags:
+    - cluster
+
+- name: RHEL HA cluster | Manage fencing
+  ansible.builtin.import_tasks: fencing.yml
+  when: rhel_ha_manage_fencing
+  tags:
+    - fencing
+
+- name: RHEL HA cluster | Manage resources
+  ansible.builtin.import_tasks: resources.yml
+  when: rhel_ha_manage_resources
+  tags:
+    - resources
+
+- name: RHEL HA cluster | Manage constraints
+  ansible.builtin.import_tasks: constraints.yml
+  when: rhel_ha_manage_constraints
+  tags:
+    - constraints
+
+- name: RHEL HA cluster | Validate final state
+  ansible.builtin.import_tasks: validate.yml
+  when: rhel_ha_validate_after_change
+  tags:
+    - validate

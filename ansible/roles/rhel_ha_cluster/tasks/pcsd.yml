@@ -1,0 +1,34 @@
+---
+- name: RHEL HA cluster | Confirm hacluster account exists
+  ansible.builtin.getent:
+    database: passwd
+    key: hacluster
+  no_log: true
+
+- name: RHEL HA cluster | Enable and start pcsd
+  ansible.builtin.service:
+    name: pcsd
+    enabled: true
+    state: started
+
+- name: RHEL HA cluster | Wait for local pcsd listener
+  ansible.builtin.wait_for:
+    host: 127.0.0.1
+    port: 2224
+    state: started
+    timeout: 30
+
+- name: RHEL HA cluster | Read pcsd service state
+  ansible.builtin.command:
+    argv:
+      - systemctl
+      - is-active
+      - pcsd
+  register: rhel_ha_pcsd_active
+  changed_when: false
+
+- name: RHEL HA cluster | Confirm pcsd is active
+  ansible.builtin.assert:
+    that:
+      - rhel_ha_pcsd_active.stdout == "active"
+    fail_msg: pcsd did not reach the active state.

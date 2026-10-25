@@ -1,0 +1,26 @@
+---
+- name: Deploy approved RHEL high-availability cluster changes
+  hosts: ha_cluster
+  gather_facts: true
+  become: true
+  any_errors_fatal: true
+
+  pre_tasks:
+    - name: Deployment | Require an explicit inventory limit
+      ansible.builtin.assert:
+        that:
+          - ansible_limit is defined
+          - ansible_limit | length > 0
+          - ansible_limit != "all"
+        fail_msg: Use an explicit approved --limit for deployment.
+
+    - name: Deployment | Require the complete cluster membership
+      ansible.builtin.assert:
+        that:
+          - ansible_play_hosts_all | length == rhel_ha_expected_node_count | int
+        fail_msg: >-
+          Cluster-wide deployment requires every expected voting member.
+          Do not configure a partial cluster.
+
+  roles:
+    - role: rhel_ha_cluster

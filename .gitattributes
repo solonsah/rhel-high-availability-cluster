@@ -1,2 +1,11 @@
 # Auto detect text files and perform LF normalization
 * text=auto
+
+*.cfg text eol=lf
+*.ini text eol=lf
+*.j2 text eol=lf
+*.md text eol=lf
+*.sh text eol=lf
+*.txt text eol=lf
+*.yaml text eol=lf
+*.yml text eol=lf

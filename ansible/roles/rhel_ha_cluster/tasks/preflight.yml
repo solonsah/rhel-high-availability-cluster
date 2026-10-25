@@ -1,0 +1,92 @@
+---
+- name: RHEL HA cluster | Confirm supported operating system
+  ansible.builtin.assert:
+    that:
+      - ansible_facts.distribution in rhel_ha_supported_distributions
+      - ansible_facts.distribution_major_version in rhel_ha_supported_major_versions
+    fail_msg: >-
+      This role supports only the documented RHEL major versions.
+      Review compatibility before changing another platform.
+
+- name: RHEL HA cluster | Confirm effective root privileges
+  ansible.builtin.assert:
+    that:
+      - ansible_facts.user_id == "root"
+    fail_msg: Effective root privileges are required for cluster changes.
+
+- name: RHEL HA cluster | Confirm change-control safeguards
+  ansible.builtin.assert:
+    that:
+      - rhel_ha_change_approved | bool
+      - rhel_ha_backup_confirmed | bool
+      - rhel_ha_recovery_access_confirmed | bool
+      - rhel_ha_maintenance_window_confirmed | bool
+    fail_msg: >-
+      Change approval, backup confirmation, recovery access and a maintenance
+      window must all be confirmed before cluster changes.
+
+- name: RHEL HA cluster | Confirm cluster inventory group exists
+  ansible.builtin.assert:
+    that:
+      - rhel_ha_cluster_group in groups
+      - rhel_ha_cluster_nodes | length == rhel_ha_expected_node_count | int
+      - rhel_ha_cluster_nodes | unique | length == rhel_ha_cluster_nodes | length
+    fail_msg: >-
+      The cluster inventory must contain the exact expected number of unique nodes.
+
+- name: RHEL HA cluster | Confirm odd voting membership
+  ansible.builtin.assert:
+    that:
+      - rhel_ha_cluster_nodes | length % 2 == 1
+    fail_msg: >-
+      This design requires an odd number of voting nodes.
+      Review quorum-device requirements before using an even node count.
+  when: rhel_ha_require_odd_node_count | bool
+
+- name: RHEL HA cluster | Install approved HA packages
+  ansible.builtin.dnf:
+    name: "{{ rhel_ha_packages }}"
+    state: present
+    update_cache: false
+    lock_timeout: 60
+  register: rhel_ha_package_result
+
+- name: RHEL HA cluster | Confirm production fencing policy
+  ansible.builtin.assert:
+    that:
+      - rhel_ha_stonith_enabled | bool
+      - rhel_ha_fencing_design_approved | bool
+    fail_msg: >-
+      Production cluster configuration requires STONITH and an approved fencing design.
+  when:
+    - rhel_ha_manage_cluster
+      or rhel_ha_manage_fencing
+      or rhel_ha_manage_resources
+      or rhel_ha_manage_constraints
+
+- name: RHEL HA cluster | Confirm private cluster authentication input
+  ansible.builtin.assert:
+    that:
+      - rhel_ha_allow_password_authentication | bool
+      - rhel_ha_hacluster_password | length >= 16
+    fail_msg: >-
+      Cluster setup requires an approved private password of at least 16 characters.
+      Never store it in the repository.
+  no_log: true
+  when: rhel_ha_manage_cluster | bool
+
+- name: RHEL HA cluster | Confirm fence-device definitions
+  ansible.builtin.assert:
+    that:
+      - rhel_ha_fence_devices | length > 0
+    fail_msg: Define approved fence devices in an ignored private variables file.
+  no_log: true
+  when: rhel_ha_manage_fencing | bool
+
+- name: RHEL HA cluster | Confirm fencing validation before workload resources
+  ansible.builtin.assert:
+    that:
+      - rhel_ha_fencing_test_confirmed | bool
+    fail_msg: Successful fencing tests must be confirmed before managing workload resources.
+  when:
+    - rhel_ha_manage_resources or rhel_ha_manage_constraints

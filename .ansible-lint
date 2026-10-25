@@ -1,0 +1,13 @@
+---
+profile: production
+offline: true
+
+exclude_paths:
+  - .git/
+  - collections/
+  - inventory/private/
+  - reports/
+  - sample-output/
+
+skip_list:
+  - role-name

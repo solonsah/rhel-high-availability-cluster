@@ -1,0 +1,6 @@
+---
+- name: RHEL HA cluster | Restart pcsd
+  ansible.builtin.service:
+    name: pcsd
+    state: restarted
+  listen: Restart pcsd

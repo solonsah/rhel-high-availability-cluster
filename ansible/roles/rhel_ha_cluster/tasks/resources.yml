@@ -1,0 +1,106 @@
+---
+- name: RHEL HA cluster | Check virtual IP resource
+  ansible.builtin.command:
+    argv:
+      - pcs
+      - resource
+      - config
+      - "{{ rhel_ha_virtual_ip_resource_name }}"
+  register: rhel_ha_existing_virtual_ip
+  changed_when: false
+  failed_when: false
+  run_once: true
+  delegate_to: "{{ rhel_ha_cluster_nodes | first }}"
+
+- name: RHEL HA cluster | Create virtual IP resource without explicit interface
+  ansible.builtin.command:
+    argv:
+      - pcs
+      - resource
+      - create
+      - "{{ rhel_ha_virtual_ip_resource_name }}"
+      - ocf:heartbeat:IPaddr2
+      - "ip={{ rhel_ha_virtual_ip_address }}"
+      - "cidr_netmask={{ rhel_ha_virtual_ip_cidr_netmask }}"
+      - op
+      - monitor
+      - interval=30s
+  register: rhel_ha_created_virtual_ip
+  changed_when: rhel_ha_created_virtual_ip.rc == 0
+  run_once: true
+  delegate_to: "{{ rhel_ha_cluster_nodes | first }}"
+  when:
+    - rhel_ha_existing_virtual_ip.rc != 0
+    - rhel_ha_virtual_ip_nic | length == 0
+
+- name: RHEL HA cluster | Create virtual IP resource with explicit interface
+  ansible.builtin.command:
+    argv:
+      - pcs
+      - resource
+      - create
+      - "{{ rhel_ha_virtual_ip_resource_name }}"
+      - ocf:heartbeat:IPaddr2
+      - "ip={{ rhel_ha_virtual_ip_address }}"
+      - "cidr_netmask={{ rhel_ha_virtual_ip_cidr_netmask }}"
+      - "nic={{ rhel_ha_virtual_ip_nic }}"
+      - op
+      - monitor
+      - interval=30s
+  register: rhel_ha_created_virtual_ip_with_nic
+  changed_when: rhel_ha_created_virtual_ip_with_nic.rc == 0
+  run_once: true
+  delegate_to: "{{ rhel_ha_cluster_nodes | first }}"
+  when:
+    - rhel_ha_existing_virtual_ip.rc != 0
+    - rhel_ha_virtual_ip_nic | length > 0
+
+- name: RHEL HA cluster | Check service resource
+  ansible.builtin.command:
+    argv:
+      - pcs
+      - resource
+      - config
+      - "{{ rhel_ha_service_resource_name }}"
+  register: rhel_ha_existing_service_resource
+  changed_when: false
+  failed_when: false
+  run_once: true
+  delegate_to: "{{ rhel_ha_cluster_nodes | first }}"
+
+- name: RHEL HA cluster | Create service resource
+  ansible.builtin.command:
+    argv:
+      - pcs
+      - resource
+      - create
+      - "{{ rhel_ha_service_resource_name }}"
+      - "{{ rhel_ha_service_agent }}"
+      - op
+      - monitor
+      - interval=30s
+      - timeout=60s
+  register: rhel_ha_created_service_resource
+  changed_when: rhel_ha_created_service_resource.rc == 0
+  run_once: true
+  delegate_to: "{{ rhel_ha_cluster_nodes | first }}"
+  when: rhel_ha_existing_service_resource.rc != 0
+
+- name: RHEL HA cluster | Read configured resources
+  ansible.builtin.command:
+    argv:
+      - pcs
+      - resource
+      - config
+  register: rhel_ha_configured_resources
+  changed_when: false
+  run_once: true
+  delegate_to: "{{ rhel_ha_cluster_nodes | first }}"
+
+- name: RHEL HA cluster | Confirm managed resources exist
+  ansible.builtin.assert:
+    that:
+      - rhel_ha_virtual_ip_resource_name in rhel_ha_configured_resources.stdout
+      - rhel_ha_service_resource_name in rhel_ha_configured_resources.stdout
+    fail_msg: One or more managed cluster resources are missing.
+  run_once: true

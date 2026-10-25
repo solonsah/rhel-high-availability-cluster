@@ -1,0 +1,86 @@
+---
+- name: RHEL HA cluster | Confirm rollback authorization
+  ansible.builtin.assert:
+    that:
+      - rhel_ha_change_approved | bool
+      - rhel_ha_backup_confirmed | bool
+      - rhel_ha_recovery_access_confirmed | bool
+      - rhel_ha_maintenance_window_confirmed | bool
+      - rhel_ha_rollback_approved | bool
+      - rhel_ha_rollback_source | length > 0
+      - rhel_ha_rollback_source.startswith(rhel_ha_configuration_backup_root + '/')
+    fail_msg: >-
+      Rollback requires approval, recovery access, a maintenance window and an
+      exact protected backup path.
+
+- name: RHEL HA cluster | Check rollback source
+  ansible.builtin.stat:
+    path: "{{ rhel_ha_rollback_source }}"
+  register: rhel_ha_rollback_source_status
+  run_once: true
+  delegate_to: "{{ rhel_ha_cluster_nodes | first }}"
+
+- name: RHEL HA cluster | Confirm rollback source is a protected file
+  ansible.builtin.assert:
+    that:
+      - rhel_ha_rollback_source_status.stat.exists
+      - rhel_ha_rollback_source_status.stat.isreg
+      - rhel_ha_rollback_source_status.stat.pw_name == "root"
+      - rhel_ha_rollback_source_status.stat.mode in ["0600", "0640"]
+    fail_msg: The selected rollback source is missing or has unsafe ownership or permissions.
+  run_once: true
+
+- name: RHEL HA cluster | Preserve current configuration before rollback
+  ansible.builtin.command:
+    argv:
+      - pcs
+      - config
+      - backup
+      - "{{ rhel_ha_configuration_backup_root }}/pre-rollback-{{ ansible_date_time.iso8601_basic_short }}"
+  register: rhel_ha_pre_rollback_backup
+  changed_when: rhel_ha_pre_rollback_backup.rc == 0
+  run_once: true
+  delegate_to: "{{ rhel_ha_cluster_nodes | first }}"
+
+- name: RHEL HA cluster | Restore approved cluster configuration
+  ansible.builtin.command:
+    argv:
+      - pcs
+      - config
+      - restore
+      - "{{ rhel_ha_rollback_source }}"
+  register: rhel_ha_configuration_restore
+  changed_when: rhel_ha_configuration_restore.rc == 0
+  run_once: true
+  delegate_to: "{{ rhel_ha_cluster_nodes | first }}"
+
+- name: RHEL HA cluster | Read post-rollback cluster status
+  ansible.builtin.command:
+    argv:
+      - pcs
+      - status
+      - --full
+  register: rhel_ha_post_rollback_status
+  changed_when: false
+  run_once: true
+  delegate_to: "{{ rhel_ha_cluster_nodes | first }}"
+
+- name: RHEL HA cluster | Read post-rollback quorum status
+  ansible.builtin.command:
+    argv:
+      - pcs
+      - quorum
+      - status
+  register: rhel_ha_post_rollback_quorum
+  changed_when: false
+  run_once: true
+  delegate_to: "{{ rhel_ha_cluster_nodes | first }}"
+
+- name: RHEL HA cluster | Confirm post-rollback health
+  ansible.builtin.assert:
+    that:
+      - "'Quorate: Yes' in rhel_ha_post_rollback_quorum.stdout"
+      - "'FAILED' not in rhel_ha_post_rollback_status.stdout"
+      - "'UNCLEAN' not in rhel_ha_post_rollback_status.stdout"
+    fail_msg: Rollback completed, but the cluster requires immediate operator review.
+  run_once: true

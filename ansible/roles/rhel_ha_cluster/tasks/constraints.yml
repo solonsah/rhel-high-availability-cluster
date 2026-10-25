@@ -1,0 +1,104 @@
+---
+- name: RHEL HA cluster | Read resource groups
+  ansible.builtin.command:
+    argv:
+      - pcs
+      - resource
+      - group
+      - list
+  register: rhel_ha_resource_groups
+  changed_when: false
+  failed_when: false
+  run_once: true
+  delegate_to: "{{ rhel_ha_cluster_nodes | first }}"
+
+- name: RHEL HA cluster | Create optional resource group
+  ansible.builtin.command:
+    argv:
+      - pcs
+      - resource
+      - group
+      - add
+      - "{{ rhel_ha_resource_group_name }}"
+      - "{{ rhel_ha_virtual_ip_resource_name }}"
+      - "{{ rhel_ha_service_resource_name }}"
+  register: rhel_ha_created_resource_group
+  changed_when: rhel_ha_created_resource_group.rc == 0
+  run_once: true
+  delegate_to: "{{ rhel_ha_cluster_nodes | first }}"
+  when:
+    - rhel_ha_use_resource_group | bool
+    - rhel_ha_resource_group_name not in rhel_ha_resource_groups.stdout
+
+- name: RHEL HA cluster | Read explicit constraints
+  ansible.builtin.command:
+    argv:
+      - pcs
+      - constraint
+      - config
+      - --full
+  register: rhel_ha_constraint_configuration
+  changed_when: false
+  run_once: true
+  delegate_to: "{{ rhel_ha_cluster_nodes | first }}"
+  when: not rhel_ha_use_resource_group | bool
+
+- name: RHEL HA cluster | Create colocation constraint
+  ansible.builtin.command:
+    argv:
+      - pcs
+      - constraint
+      - colocation
+      - add
+      - "{{ rhel_ha_service_resource_name }}"
+      - with
+      - "{{ rhel_ha_virtual_ip_resource_name }}"
+      - INFINITY
+      - id=colocate-service-with-vip
+  register: rhel_ha_created_colocation_constraint
+  changed_when: rhel_ha_created_colocation_constraint.rc == 0
+  run_once: true
+  delegate_to: "{{ rhel_ha_cluster_nodes | first }}"
+  when:
+    - not rhel_ha_use_resource_group | bool
+    - "'colocate-service-with-vip' not in rhel_ha_constraint_configuration.stdout"
+
+- name: RHEL HA cluster | Create ordering constraint
+  ansible.builtin.command:
+    argv:
+      - pcs
+      - constraint
+      - order
+      - "{{ rhel_ha_virtual_ip_resource_name }}"
+      - then
+      - "{{ rhel_ha_service_resource_name }}"
+      - id=start-vip-before-service
+  register: rhel_ha_created_ordering_constraint
+  changed_when: rhel_ha_created_ordering_constraint.rc == 0
+  run_once: true
+  delegate_to: "{{ rhel_ha_cluster_nodes | first }}"
+  when:
+    - not rhel_ha_use_resource_group | bool
+    - "'start-vip-before-service' not in rhel_ha_constraint_configuration.stdout"
+
+- name: RHEL HA cluster | Read final constraint configuration
+  ansible.builtin.command:
+    argv:
+      - pcs
+      - constraint
+      - config
+      - --full
+  register: rhel_ha_final_constraints
+  changed_when: false
+  run_once: true
+  delegate_to: "{{ rhel_ha_cluster_nodes | first }}"
+  when: not rhel_ha_use_resource_group | bool
+
+- name: RHEL HA cluster | Confirm explicit constraints
+  ansible.builtin.assert:
+    that:
+      - "'colocate-service-with-vip' in rhel_ha_final_constraints.stdout"
+      - "'start-vip-before-service' in rhel_ha_final_constraints.stdout"
+    fail_msg: Required ordering or colocation constraints are missing.
+  run_once: true
+  when: not rhel_ha_use_resource_group | bool

@@ -1,0 +1,72 @@
+---
+- name: RHEL HA cluster | Validate fence-device schema
+  ansible.builtin.assert:
+    that:
+      - item.name is defined
+      - item.name | length > 0
+      - item.agent is defined
+      - item.agent | length > 0
+      - item.options is defined
+      - item.options | length > 0
+    fail_msg: Each fence device requires a name, agent and nonempty options list.
+  loop: "{{ rhel_ha_fence_devices }}"
+  loop_control:
+    label: "{{ item.name | default('undefined') }}"
+  no_log: true
+
+- name: RHEL HA cluster | Check existing fence devices
+  ansible.builtin.command:
+    argv:
+      - pcs
+      - stonith
+      - config
+      - "{{ item.name }}"
+  register: rhel_ha_existing_fence_devices
+  changed_when: false
+  failed_when: false
+  loop: "{{ rhel_ha_fence_devices }}"
+  loop_control:
+    label: "{{ item.name }}"
+  no_log: true
+  run_once: true
+  delegate_to: "{{ rhel_ha_cluster_nodes | first }}"
+
+- name: RHEL HA cluster | Create missing fence devices
+  ansible.builtin.command:
+    argv: >-
+      {{
+        ['pcs', 'stonith', 'create', item.item.name, item.item.agent]
+        + item.item.options
+      }}
+  register: rhel_ha_created_fence_devices
+  changed_when: rhel_ha_created_fence_devices.rc == 0
+  loop: "{{ rhel_ha_existing_fence_devices.results }}"
+  loop_control:
+    label: "{{ item.item.name }}"
+  no_log: true
+  run_once: true
+  delegate_to: "{{ rhel_ha_cluster_nodes | first }}"
+  when: item.rc != 0
+
+- name: RHEL HA cluster | Verify configured fence devices
+  ansible.builtin.command:
+    argv:
+      - pcs
+      - stonith
+      - config
+  register: rhel_ha_fence_configuration
+  changed_when: false
+  no_log: true
+  run_once: true
+  delegate_to: "{{ rhel_ha_cluster_nodes | first }}"
+
+- name: RHEL HA cluster | Confirm every fence device is present
+  ansible.builtin.assert:
+    that:
+      - item.name in rhel_ha_fence_configuration.stdout
+    fail_msg: An approved fence device is missing after configuration.
+  loop: "{{ rhel_ha_fence_devices }}"
+  loop_control:
+    label: "{{ item.name }}"
+  no_log: true
+  run_once: true

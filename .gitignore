@@ -1,0 +1,83 @@
+# Ansible runtime and downloaded content
+*.retry
+/collections/
+/roles/
+.ansible/
+ansible_facts/
+fact_cache/
+
+# Private inventories and variables
+inventory/private/
+inventory/*-private.*
+inventory/**/*.private.*
+**/host_vars/
+**/group_vars/
+!inventory/example.ini
+
+# Secrets and authentication material
+*.key
+*.pem
+*.p12
+*.pfx
+*.crt
+*.cer
+*.jks
+*.kdb
+*.sth
+*.vault
+*.secret
+*.secrets
+*.password
+*.token
+*.credentials
+.vault_pass
+vault-password*
+secrets/
+credentials/
+
+# Cluster-sensitive material
+authkey
+corosync.authkey
+pcsd-token*
+fence-agents-secrets*
+stonith-secrets*
+cluster-secrets*
+
+# Environment and local configuration
+.env
+.env.*
+!.env.example
+*.local
+*.override
+.vscode/
+.idea/
+
+# Generated reports, logs and backups
+reports/
+artifacts/
+logs/
+backups/
+coverage/
+*.log
+*.out
+*.bak
+*.backup
+*.orig
+*.tmp
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+
+# Ansible lint cache
+.ansible-lint-cache/
+
+# Operating-system files
+.DS_Store
+Thumbs.db
+desktop.ini

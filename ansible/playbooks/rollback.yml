@@ -1,0 +1,27 @@
+---
+- name: Restore an approved RHEL HA cluster configuration backup
+  hosts: ha_cluster
+  gather_facts: true
+  become: true
+  any_errors_fatal: true
+
+  pre_tasks:
+    - name: Rollback | Require an explicit inventory limit
+      ansible.builtin.assert:
+        that:
+          - ansible_limit is defined
+          - ansible_limit | length > 0
+          - ansible_limit != "all"
+        fail_msg: Use an explicit approved --limit for rollback.
+
+    - name: Rollback | Require the complete cluster membership
+      ansible.builtin.assert:
+        that:
+          - ansible_play_hosts_all | length == rhel_ha_expected_node_count | int
+        fail_msg: Rollback requires every expected cluster member.
+
+  tasks:
+    - name: Rollback | Run controlled cluster restoration
+      ansible.builtin.include_role:
+        name: rhel_ha_cluster
+        tasks_from: rollback.yml
