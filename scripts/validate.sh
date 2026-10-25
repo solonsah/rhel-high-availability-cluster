@@ -21,7 +21,7 @@ for required_command in "${required_commands[@]}"; do
 done
 
 printf '%s\n' 'Checking YAML files...'
-yamllint .
+yamllint .yamllint .github/workflows ansible requirements.yml
 
 printf '%s\n' 'Checking shell scripts...'
 shellcheck scripts/*.sh
