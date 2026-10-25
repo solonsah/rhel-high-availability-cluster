@@ -24,11 +24,11 @@
       - systemctl
       - is-active
       - pcsd
-  register: rhel_ha_pcsd_active
+  register: rhel_ha_cluster_pcsd_active
   changed_when: false
 
 - name: RHEL HA cluster | Confirm pcsd is active
   ansible.builtin.assert:
     that:
-      - rhel_ha_pcsd_active.stdout == "active"
+      - rhel_ha_cluster_pcsd_active.stdout == "active"
     fail_msg: pcsd did not reach the active state.

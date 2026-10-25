@@ -1,12 +1,12 @@
 ---
 - name: RHEL HA cluster | Select the bootstrap node
   ansible.builtin.set_fact:
-    rhel_ha_bootstrap_node: "{{ rhel_ha_cluster_nodes | first }}"
+    rhel_ha_cluster_bootstrap_node: "{{ rhel_ha_cluster_nodes | first }}"
   run_once: true
 
 - name: RHEL HA cluster | Create protected backup directory
   ansible.builtin.file:
-    path: "{{ rhel_ha_configuration_backup_root }}"
+    path: "{{ rhel_ha_cluster_configuration_backup_root }}"
     state: directory
     owner: root
     group: root
@@ -20,12 +20,12 @@
       - pcs
       - config
       - backup
-      - "{{ rhel_ha_configuration_backup_root }}/pcs-{{ ansible_date_time.iso8601_basic_short }}"
+      - "{{ rhel_ha_cluster_configuration_backup_root }}/pcs-{{ ansible_date_time.iso8601_basic_short }}"
   register: rhel_ha_cluster_backup
   changed_when: rhel_ha_cluster_backup.rc == 0
   run_once: true
   delegate_to: "{{ rhel_ha_cluster_nodes | first }}"
-  when: rhel_ha_corosync_configuration.stat.exists
+  when: rhel_ha_cluster_corosync_configuration.stat.exists
 
 - name: RHEL HA cluster | Authenticate cluster nodes
   ansible.builtin.command:
@@ -33,12 +33,12 @@
       {{
         ['pcs', 'host', 'auth']
         + rhel_ha_cluster_nodes
-        + ['-u', 'hacluster', '-p', rhel_ha_hacluster_password]
+        + ['-u', 'hacluster', '-p', rhel_ha_cluster_hacluster_password]
       }}
-  register: rhel_ha_host_authentication
+  register: rhel_ha_cluster_host_authentication
   changed_when: >-
-    'Authorized' in rhel_ha_host_authentication.stdout
-    or 'authorized' in rhel_ha_host_authentication.stdout
+    'Authorized' in rhel_ha_cluster_host_authentication.stdout
+    or 'authorized' in rhel_ha_cluster_host_authentication.stdout
   no_log: true
   run_once: true
   delegate_to: "{{ rhel_ha_cluster_nodes | first }}"
@@ -54,7 +54,7 @@
   changed_when: rhel_ha_cluster_setup.rc == 0
   run_once: true
   delegate_to: "{{ rhel_ha_cluster_nodes | first }}"
-  when: not rhel_ha_corosync_configuration.stat.exists
+  when: not rhel_ha_cluster_corosync_configuration.stat.exists
 
 - name: RHEL HA cluster | Enable cluster services on all nodes
   ansible.builtin.command:
@@ -89,9 +89,9 @@
       - pcs
       - property
       - set
-      - "stonith-enabled={{ rhel_ha_stonith_enabled | bool | lower }}"
-  register: rhel_ha_stonith_property
-  changed_when: rhel_ha_stonith_property.rc == 0
+      - "stonith-enabled={{ rhel_ha_cluster_stonith_enabled | bool | lower }}"
+  register: rhel_ha_cluster_stonith_property
+  changed_when: rhel_ha_cluster_stonith_property.rc == 0
   run_once: true
   delegate_to: "{{ rhel_ha_cluster_nodes | first }}"
 
@@ -101,9 +101,9 @@
       - pcs
       - property
       - set
-      - "no-quorum-policy={{ rhel_ha_no_quorum_policy }}"
-  register: rhel_ha_quorum_property
-  changed_when: rhel_ha_quorum_property.rc == 0
+      - "no-quorum-policy={{ rhel_ha_cluster_no_quorum_policy }}"
+  register: rhel_ha_cluster_quorum_property
+  changed_when: rhel_ha_cluster_quorum_property.rc == 0
   run_once: true
   delegate_to: "{{ rhel_ha_cluster_nodes | first }}"
 
@@ -113,9 +113,9 @@
       - pcs
       - property
       - set
-      - "start-failure-is-fatal={{ rhel_ha_start_failure_is_fatal | bool | lower }}"
-  register: rhel_ha_start_failure_property
-  changed_when: rhel_ha_start_failure_property.rc == 0
+      - "start-failure-is-fatal={{ rhel_ha_cluster_start_failure_is_fatal | bool | lower }}"
+  register: rhel_ha_cluster_start_failure_property
+  changed_when: rhel_ha_cluster_start_failure_property.rc == 0
   run_once: true
   delegate_to: "{{ rhel_ha_cluster_nodes | first }}"
 
@@ -126,10 +126,10 @@
       - resource
       - defaults
       - update
-      - "resource-stickiness={{ rhel_ha_resource_stickiness }}"
-      - "migration-threshold={{ rhel_ha_migration_threshold }}"
-      - "failure-timeout={{ rhel_ha_failure_timeout }}"
-  register: rhel_ha_resource_defaults
-  changed_when: rhel_ha_resource_defaults.rc == 0
+      - "resource-stickiness={{ rhel_ha_cluster_resource_stickiness }}"
+      - "migration-threshold={{ rhel_ha_cluster_migration_threshold }}"
+      - "failure-timeout={{ rhel_ha_cluster_failure_timeout }}"
+  register: rhel_ha_cluster_resource_defaults
+  changed_when: rhel_ha_cluster_resource_defaults.rc == 0
   run_once: true
   delegate_to: "{{ rhel_ha_cluster_nodes | first }}"

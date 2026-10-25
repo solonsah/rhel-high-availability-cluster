@@ -1,16 +1,16 @@
 ---
 - name: RHEL HA cluster | Install approved HA packages
   ansible.builtin.dnf:
-    name: "{{ rhel_ha_packages }}"
+    name: "{{ rhel_ha_cluster_packages }}"
     state: present
     update_cache: false
     lock_timeout: 60
-  register: rhel_ha_package_result
+  register: rhel_ha_cluster_package_result
   throttle: 1
 
 - name: RHEL HA cluster | Display package-change result
   ansible.builtin.debug:
     msg:
       host: "{{ inventory_hostname }}"
-      changed: "{{ rhel_ha_package_result.changed }}"
-      requested_packages: "{{ rhel_ha_packages }}"
+      changed: "{{ rhel_ha_cluster_package_result.changed }}"
+      requested_packages: "{{ rhel_ha_cluster_packages }}"

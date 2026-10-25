@@ -9,12 +9,12 @@
 - name: RHEL HA cluster | Check Corosync configuration
   ansible.builtin.stat:
     path: /etc/corosync/corosync.conf
-  register: rhel_ha_corosync_configuration
+  register: rhel_ha_cluster_corosync_configuration
 
 - name: RHEL HA cluster | Check Pacemaker configuration database
   ansible.builtin.stat:
     path: /var/lib/pacemaker/cib/cib.xml
-  register: rhel_ha_cib_configuration
+  register: rhel_ha_cluster_cib_configuration
 
 - name: RHEL HA cluster | Read PCS status
   ansible.builtin.command:
@@ -22,7 +22,7 @@
       - pcs
       - status
       - --full
-  register: rhel_ha_pcs_status
+  register: rhel_ha_cluster_pcs_status
   changed_when: false
   failed_when: false
   when: "'pcs' in ansible_facts.packages"
@@ -33,7 +33,7 @@
       - pcs
       - quorum
       - status
-  register: rhel_ha_pcs_quorum_status
+  register: rhel_ha_cluster_pcs_quorum_status
   changed_when: false
   failed_when: false
   when: "'pcs' in ansible_facts.packages"
@@ -44,7 +44,7 @@
       - pcs
       - stonith
       - status
-  register: rhel_ha_pcs_fencing_status
+  register: rhel_ha_cluster_pcs_fencing_status
   changed_when: false
   failed_when: false
   when: "'pcs' in ansible_facts.packages"
@@ -55,7 +55,7 @@
       - pcs
       - resource
       - config
-  register: rhel_ha_pcs_resource_configuration
+  register: rhel_ha_cluster_pcs_resource_configuration
   changed_when: false
   failed_when: false
   when: "'pcs' in ansible_facts.packages"
@@ -65,7 +65,7 @@
     argv:
       - corosync-quorumtool
       - -s
-  register: rhel_ha_corosync_quorum_state
+  register: rhel_ha_cluster_corosync_quorum_state
   changed_when: false
   failed_when: false
   when: "'corosync' in ansible_facts.packages"
@@ -85,5 +85,5 @@
           if 'pcsd.service' in ansible_facts.services
           else 'not-found'
         }}
-      corosync_configuration_present: "{{ rhel_ha_corosync_configuration.stat.exists }}"
-      cib_configuration_present: "{{ rhel_ha_cib_configuration.stat.exists }}"
+      corosync_configuration_present: "{{ rhel_ha_cluster_corosync_configuration.stat.exists }}"
+      cib_configuration_present: "{{ rhel_ha_cluster_cib_configuration.stat.exists }}"

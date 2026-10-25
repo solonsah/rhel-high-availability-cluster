@@ -9,7 +9,7 @@
       - ansible_facts.services['pacemaker.service'].state == 'running'
       - ansible_facts.services['pcsd.service'].state == 'running'
     fail_msg: One or more required cluster services are not running.
-  when: rhel_ha_manage_cluster | bool
+  when: rhel_ha_cluster_manage_cluster | bool
 
 - name: RHEL HA cluster | Read full cluster status
   ansible.builtin.command:
@@ -17,11 +17,11 @@
       - pcs
       - status
       - --full
-  register: rhel_ha_final_cluster_status
+  register: rhel_ha_cluster_final_cluster_status
   changed_when: false
   run_once: true
   delegate_to: "{{ rhel_ha_cluster_nodes | first }}"
-  when: rhel_ha_manage_cluster | bool
+  when: rhel_ha_cluster_manage_cluster | bool
 
 - name: RHEL HA cluster | Read final quorum status
   ansible.builtin.command:
@@ -29,11 +29,11 @@
       - pcs
       - quorum
       - status
-  register: rhel_ha_final_quorum_status
+  register: rhel_ha_cluster_final_quorum_status
   changed_when: false
   run_once: true
   delegate_to: "{{ rhel_ha_cluster_nodes | first }}"
-  when: rhel_ha_manage_cluster | bool
+  when: rhel_ha_cluster_manage_cluster | bool
 
 - name: RHEL HA cluster | Read final cluster properties
   ansible.builtin.command:
@@ -41,23 +41,23 @@
       - pcs
       - property
       - config
-  register: rhel_ha_final_cluster_properties
+  register: rhel_ha_cluster_final_cluster_properties
   changed_when: false
   run_once: true
   delegate_to: "{{ rhel_ha_cluster_nodes | first }}"
-  when: rhel_ha_manage_cluster | bool
+  when: rhel_ha_cluster_manage_cluster | bool
 
 - name: RHEL HA cluster | Confirm cluster health and policy
   ansible.builtin.assert:
     that:
-      - "'Quorate: Yes' in rhel_ha_final_quorum_status.stdout"
-      - "'stonith-enabled' in rhel_ha_final_cluster_properties.stdout"
-      - "'no-quorum-policy' in rhel_ha_final_cluster_properties.stdout"
-      - "'FAILED' not in rhel_ha_final_cluster_status.stdout"
-      - "'UNCLEAN' not in rhel_ha_final_cluster_status.stdout"
+      - "'Quorate: Yes' in rhel_ha_cluster_final_quorum_status.stdout"
+      - "'stonith-enabled' in rhel_ha_cluster_final_cluster_properties.stdout"
+      - "'no-quorum-policy' in rhel_ha_cluster_final_cluster_properties.stdout"
+      - "'FAILED' not in rhel_ha_cluster_final_cluster_status.stdout"
+      - "'UNCLEAN' not in rhel_ha_cluster_final_cluster_status.stdout"
     fail_msg: Cluster validation detected a quorum, policy or resource failure.
   run_once: true
-  when: rhel_ha_manage_cluster | bool
+  when: rhel_ha_cluster_manage_cluster | bool
 
 - name: RHEL HA cluster | Read final fencing configuration
   ansible.builtin.command:
@@ -65,24 +65,24 @@
       - pcs
       - stonith
       - config
-  register: rhel_ha_final_fencing_configuration
+  register: rhel_ha_cluster_final_fencing_configuration
   changed_when: false
   no_log: true
   run_once: true
   delegate_to: "{{ rhel_ha_cluster_nodes | first }}"
-  when: rhel_ha_manage_fencing | bool
+  when: rhel_ha_cluster_manage_fencing | bool
 
 - name: RHEL HA cluster | Confirm fence devices remain configured
   ansible.builtin.assert:
     that:
-      - item.name in rhel_ha_final_fencing_configuration.stdout
+      - item.name in rhel_ha_cluster_final_fencing_configuration.stdout
     fail_msg: A managed fence device is absent after configuration.
-  loop: "{{ rhel_ha_fence_devices }}"
+  loop: "{{ rhel_ha_cluster_fence_devices }}"
   loop_control:
     label: "{{ item.name }}"
   no_log: true
   run_once: true
-  when: rhel_ha_manage_fencing | bool
+  when: rhel_ha_cluster_manage_fencing | bool
 
 - name: RHEL HA cluster | Read final resource configuration
   ansible.builtin.command:
@@ -90,17 +90,17 @@
       - pcs
       - resource
       - config
-  register: rhel_ha_final_resource_configuration
+  register: rhel_ha_cluster_final_resource_configuration
   changed_when: false
   run_once: true
   delegate_to: "{{ rhel_ha_cluster_nodes | first }}"
-  when: rhel_ha_manage_resources | bool
+  when: rhel_ha_cluster_manage_resources | bool
 
 - name: RHEL HA cluster | Confirm managed resource definitions
   ansible.builtin.assert:
     that:
-      - rhel_ha_virtual_ip_resource_name in rhel_ha_final_resource_configuration.stdout
-      - rhel_ha_service_resource_name in rhel_ha_final_resource_configuration.stdout
+      - rhel_ha_cluster_virtual_ip_resource_name in rhel_ha_cluster_final_resource_configuration.stdout
+      - rhel_ha_cluster_service_resource_name in rhel_ha_cluster_final_resource_configuration.stdout
     fail_msg: Managed resources are missing from the final configuration.
   run_once: true
-  when: rhel_ha_manage_resources | bool
+  when: rhel_ha_cluster_manage_resources | bool

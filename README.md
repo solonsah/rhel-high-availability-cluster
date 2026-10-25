@@ -68,17 +68,17 @@ All mutation families are disabled by default:
 
 ```yaml
 
-rhel_ha_manage_packages: false
+rhel_ha_cluster_manage_packages: false
 
-rhel_ha_manage_pcsd: false
+rhel_ha_cluster_manage_pcsd: false
 
-rhel_ha_manage_cluster: false
+rhel_ha_cluster_manage_cluster: false
 
-rhel_ha_manage_fencing: false
+rhel_ha_cluster_manage_fencing: false
 
-rhel_ha_manage_resources: false
+rhel_ha_cluster_manage_resources: false
 
-rhel_ha_manage_constraints: false
+rhel_ha_cluster_manage_constraints: false
 
 ```
 
@@ -201,7 +201,7 @@ Fence definitions belong in an ignored private variables file:
 
 ```yaml
 
-rhel_ha_fence_devices:
+rhel_ha_cluster_fence_devices:
 
   - name: fence-node-01
 

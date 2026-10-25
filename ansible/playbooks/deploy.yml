@@ -17,7 +17,7 @@
     - name: Deployment | Require the complete cluster membership
       ansible.builtin.assert:
         that:
-          - ansible_play_hosts_all | length == rhel_ha_expected_node_count | int
+          - ansible_play_hosts_all | length == rhel_ha_cluster_expected_node_count | int
         fail_msg: >-
           Cluster-wide deployment requires every expected voting member.
           Do not configure a partial cluster.

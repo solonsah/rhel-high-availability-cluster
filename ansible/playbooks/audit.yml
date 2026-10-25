@@ -6,7 +6,7 @@
   any_errors_fatal: false
 
   vars:
-    rhel_ha_validate_after_change: false
+    rhel_ha_cluster_validate_after_change: false
 
   roles:
     - role: rhel_ha_cluster

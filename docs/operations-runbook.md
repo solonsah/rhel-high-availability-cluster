@@ -97,27 +97,27 @@ At minimum, review:
 
 \---
 
-rhel_ha_change_approved: true
+rhel_ha_cluster_change_approved: true
 
-rhel_ha_backup_confirmed: true
+rhel_ha_cluster_backup_confirmed: true
 
-rhel_ha_recovery_access_confirmed: true
+rhel_ha_cluster_recovery_access_confirmed: true
 
-rhel_ha_maintenance_window_confirmed: true
+rhel_ha_cluster_maintenance_window_confirmed: true
 
-rhel_ha_fencing_design_approved: true
+rhel_ha_cluster_fencing_design_approved: true
 
-rhel_ha_manage_packages: false
+rhel_ha_cluster_manage_packages: false
 
-rhel_ha_manage_pcsd: false
+rhel_ha_cluster_manage_pcsd: false
 
-rhel_ha_manage_cluster: false
+rhel_ha_cluster_manage_cluster: false
 
-rhel_ha_manage_fencing: false
+rhel_ha_cluster_manage_fencing: false
 
-rhel_ha_manage_resources: false
+rhel_ha_cluster_manage_resources: false
 
-rhel_ha_manage_constraints: false
+rhel_ha_cluster_manage_constraints: false
 
 ```
 
@@ -263,17 +263,17 @@ Create an ignored rollback file:
 
 \---
 
-rhel_ha_change_approved: true
+rhel_ha_cluster_change_approved: true
 
-rhel_ha_backup_confirmed: true
+rhel_ha_cluster_backup_confirmed: true
 
-rhel_ha_recovery_access_confirmed: true
+rhel_ha_cluster_recovery_access_confirmed: true
 
-rhel_ha_maintenance_window_confirmed: true
+rhel_ha_cluster_maintenance_window_confirmed: true
 
-rhel_ha_rollback_approved: true
+rhel_ha_cluster_rollback_approved: true
 
-rhel_ha_rollback_source: /var/backups/rhel-ha-cluster/exact-backup-file
+rhel_ha_cluster_rollback_source: /var/backups/rhel-ha-cluster/exact-backup-file
 
 ```
 

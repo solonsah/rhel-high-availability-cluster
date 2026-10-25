@@ -1,25 +1,25 @@
 ---
 # All change families are disabled by default.
-rhel_ha_manage_packages: false
-rhel_ha_manage_pcsd: false
-rhel_ha_manage_cluster: false
-rhel_ha_manage_fencing: false
-rhel_ha_manage_resources: false
-rhel_ha_manage_constraints: false
+rhel_ha_cluster_manage_packages: false
+rhel_ha_cluster_manage_pcsd: false
+rhel_ha_cluster_manage_cluster: false
+rhel_ha_cluster_manage_fencing: false
+rhel_ha_cluster_manage_resources: false
+rhel_ha_cluster_manage_constraints: false
 
 # Required change-control confirmations.
-rhel_ha_change_approved: false
-rhel_ha_backup_confirmed: false
-rhel_ha_recovery_access_confirmed: false
-rhel_ha_maintenance_window_confirmed: false
-rhel_ha_fencing_design_approved: false
-rhel_ha_rollback_approved: false
-rhel_ha_rollback_source: ""
+rhel_ha_cluster_change_approved: false
+rhel_ha_cluster_backup_confirmed: false
+rhel_ha_cluster_recovery_access_confirmed: false
+rhel_ha_cluster_maintenance_window_confirmed: false
+rhel_ha_cluster_fencing_design_approved: false
+rhel_ha_cluster_rollback_approved: false
+rhel_ha_cluster_rollback_source: ""
 
 # Supported operating-system baseline.
-rhel_ha_supported_distributions:
+rhel_ha_cluster_supported_distributions:
   - RedHat
-rhel_ha_supported_major_versions:
+rhel_ha_cluster_supported_major_versions:
   - "8"
   - "9"
 
@@ -27,51 +27,51 @@ rhel_ha_supported_major_versions:
 rhel_ha_cluster_name: portfolio-ha
 rhel_ha_cluster_group: ha_cluster
 rhel_ha_cluster_nodes: "{{ groups[rhel_ha_cluster_group] | default([]) }}"
-rhel_ha_expected_node_count: 3
+rhel_ha_cluster_expected_node_count: 3
 
 # Package and service baseline.
-rhel_ha_packages:
+rhel_ha_cluster_packages:
   - corosync
   - fence-agents-all
   - pacemaker
   - pcs
   - resource-agents
 
-rhel_ha_services:
+rhel_ha_cluster_services:
   - pcsd
 
 # Authentication must come from an approved secret source.
-rhel_ha_hacluster_password: ""
-rhel_ha_allow_password_authentication: false
+rhel_ha_cluster_hacluster_password: ""
+rhel_ha_cluster_allow_password_authentication: false
 
 # Quorum and cluster behavior.
-rhel_ha_require_odd_node_count: true
-rhel_ha_no_quorum_policy: stop
-rhel_ha_start_failure_is_fatal: true
-rhel_ha_stonith_enabled: true
+rhel_ha_cluster_require_odd_node_count: true
+rhel_ha_cluster_no_quorum_policy: stop
+rhel_ha_cluster_start_failure_is_fatal: true
+rhel_ha_cluster_stonith_enabled: true
 
 # Fencing is mandatory for a production design.
 # Populate this list only in an ignored private variables file.
-rhel_ha_fence_devices: []
-rhel_ha_fencing_test_confirmed: false
+rhel_ha_cluster_fence_devices: []
+rhel_ha_cluster_fencing_test_confirmed: false
 
 # Example clustered resources. Management remains disabled by default.
-rhel_ha_virtual_ip_address: 192.0.2.100
-rhel_ha_virtual_ip_cidr_netmask: "24"
-rhel_ha_virtual_ip_nic: ""
-rhel_ha_virtual_ip_resource_name: vip
-rhel_ha_service_resource_name: httpd-service
-rhel_ha_service_agent: systemd:httpd
+rhel_ha_cluster_virtual_ip_address: 192.0.2.100
+rhel_ha_cluster_virtual_ip_cidr_netmask: "24"
+rhel_ha_cluster_virtual_ip_nic: ""
+rhel_ha_cluster_virtual_ip_resource_name: vip
+rhel_ha_cluster_service_resource_name: httpd-service
+rhel_ha_cluster_service_agent: systemd:httpd
 
 # Resource grouping and constraints.
-rhel_ha_resource_group_name: web-service-group
-rhel_ha_use_resource_group: false
-rhel_ha_resource_stickiness: 100
-rhel_ha_migration_threshold: 3
-rhel_ha_failure_timeout: 60s
+rhel_ha_cluster_resource_group_name: web-service-group
+rhel_ha_cluster_use_resource_group: false
+rhel_ha_cluster_resource_stickiness: 100
+rhel_ha_cluster_migration_threshold: 3
+rhel_ha_cluster_failure_timeout: 60s
 
 # Operational safeguards.
-rhel_ha_serialize_package_changes: true
-rhel_ha_configuration_backup_root: /var/backups/rhel-ha-cluster
-rhel_ha_audit_output_directory: /var/tmp/rhel-ha-cluster-audit
-rhel_ha_validate_after_change: true
+rhel_ha_cluster_serialize_package_changes: true
+rhel_ha_cluster_configuration_backup_root: /var/backups/rhel-ha-cluster
+rhel_ha_cluster_audit_output_directory: /var/tmp/rhel-ha-cluster-audit
+rhel_ha_cluster_validate_after_change: true
